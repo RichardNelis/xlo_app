@@ -1,19 +1,30 @@
+import 'package:get_it/get_it.dart';
 import 'package:mobx/mobx.dart';
 import 'package:xlo_app/models/category_model.dart';
 import 'package:xlo_app/repositories/category_repository.dart';
+
+import 'connectivity_store.dart';
 
 part 'category_store.g.dart';
 
 class CategoryStore = _CategoryStoreBase with _$CategoryStore;
 
 abstract class _CategoryStoreBase with Store {
-  ObservableList<CategoryModel> categories = ObservableList<CategoryModel>();
+  late ConnectivityStore _connectivityStore;
+  late ObservableList<CategoryModel> categories;
 
   @observable
   String error = "";
 
   _CategoryStoreBase() {
-    loadCategories();
+    _connectivityStore = GetIt.I<ConnectivityStore>();
+    categories = ObservableList<CategoryModel>();
+
+    autorun((_) async {
+      if (_connectivityStore.isConnected) {
+        await loadCategories();
+      }
+    });
   }
 
   Future<void> loadCategories() async {

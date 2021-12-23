@@ -12,29 +12,35 @@ part 'home_store.g.dart';
 class HomeStore = _HomeStoreBase with _$HomeStore;
 
 abstract class _HomeStoreBase with Store {
+  late ConnectivityStore _connectivityStore;
+
   _HomeStoreBase() {
+    _connectivityStore = GetIt.I<ConnectivityStore>();
+
     autorun((_) async {
-      setLoadingAd(true);
+      _connectivityStore.isConnected;
 
-      try {
-        List<AdModel> ads = await AdRepository().getHomeAdList(
-          filter: filterStore,
-          search: search,
-          category: categoryModel,
-          page: page,
-        );
+      if (_connectivityStore.isConnected) {
+        setLoadingAd(true);
 
-        addNewAds(ads);
-        setErrorAd("");
-      } catch (e) {
-        setErrorAd(e.toString());
+        try {
+          List<AdModel> ads = await AdRepository().getHomeAdList(
+            filter: filterStore,
+            search: search,
+            category: categoryModel,
+            page: page,
+          );
+
+          addNewAds(ads);
+          setErrorAd("");
+        } catch (e) {
+          setErrorAd(e.toString());
+        }
+
+        setLoadingAd(false);
       }
-
-      setLoadingAd(false);
     });
   }
-
-  final ConnectivityStore _connectivityStore = GetIt.I<ConnectivityStore>();
 
   @observable
   int page = 0;
